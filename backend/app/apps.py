@@ -2,7 +2,7 @@
 from django.apps import AppConfig
 
 # Creating a new configuration class for the app
-class AppConfig(AppConfig):  # Notice: We are defining our AppConfig class which is derived from Django's AppConfig
+class AppConfig(AppConfig):  
     # Setting the name of the app to 'app'. This is used to uniquely identify the app within the Django project.
     name = 'app'
 

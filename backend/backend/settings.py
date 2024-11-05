@@ -44,7 +44,7 @@ CHANNEL_LAYERS = {
     'default': {  # Default layer configuration.
         'BACKEND': 'channels_redis.core.RedisChannelLayer',  # Using Redis as the backend for Channels.
         'CONFIG': {
-            "hosts": [('127.0.0.1', 6379)],  # Specifies the Redis server's host and port.
+            "hosts": [('redis', 6379)],  # Specifies the Redis server's host and port.
         },
     },
 }
@@ -117,6 +117,10 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Trusted origins for CSRF. Specifies which origins should be trusted for CSRF purposes. - React App Url
 CSRF_TRUSTED_ORIGINS = ['http://localhost:3000']
+
+CSRF_COOKIE_HTTPONLY = False  
+CSRF_COOKIE_SECURE = False 
+CORS_ALLOW_HEADERS = ["*"]
 
 # Configuration for CORS headers.
 CORS_ALLOWED_ORIGINS = [

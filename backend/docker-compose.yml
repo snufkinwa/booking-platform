@@ -1,0 +1,16 @@
+services:
+  booking-backend:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - MSGPACK_PUREPYTHON=1
+      - DJANGO_SETTINGS_MODULE=backend.settings
+    depends_on:
+      - redis
+    command: python manage.py runserver 0.0.0.0:8000
+
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
