@@ -18,4 +18,4 @@ docker compose exec booking-backend python manage.py createsuperuser
 
 Next.js, Tailwind, Typescript
 
-![Screenshot](frontend.png)
+![Screenshot](Frontend.png)
