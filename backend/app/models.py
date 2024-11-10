@@ -3,6 +3,8 @@ from phonenumber_field.modelfields import PhoneNumberField
 from django.db.models.signals import post_save, post_delete
 from django.core.exceptions import ValidationError
 from django.dispatch import receiver
+import uuid
+from datetime import datetime
 
 class SlotConfiguration(models.Model):
     day = models.DateField(help_text="The day for which to generate slots.")
@@ -21,6 +23,7 @@ class Slot(models.Model):
         return f"{self.start_time} to {self.end_time} - {'Booked' if self.is_booked else 'Open'}"
 
 class Booking(models.Model):
+    booking_id = models.CharField(max_length=50, unique=True, editable=False)
     booker_first_name = models.CharField(max_length=100)
     booker_last_name = models.CharField(max_length=100)
     booker_email = models.CharField(max_length=200)
@@ -33,11 +36,25 @@ class Booking(models.Model):
         ('denied', 'Denied'),
     ], default='confirmed')
 
+    def generate_booking_id(self):
+        # Generate a timestamp component (YYMMDDHHmm)
+        timestamp = datetime.now().strftime('%y%m%d%H%M')
+        
+        # Generate a random component (last 4 characters of UUID)
+        random_component = str(uuid.uuid4())[-4:]
+        
+        # Combine with a prefix
+        return f'BK-{timestamp}-{random_component}'
+
     def __str__(self):
         slot_str = f"from {self.slot.start_time} to {self.slot.end_time}" if self.slot else "No slot assigned"
         return f"Booking by {self.booker_first_name} {self.booker_last_name} {slot_str}"
 
     def save(self, *args, **kwargs):
+        # Generate booking_id if it doesn't exist
+        if not self.booking_id:
+            self.booking_id = self.generate_booking_id()
+            
         if self.slot and Booking.objects.filter(slot=self.slot, status='confirmed').exists():
             raise ValidationError('This slot is already booked.')
         super().save(*args, **kwargs)
@@ -57,4 +74,3 @@ def update_slot_status_on_booking_delete(sender, instance, **kwargs):
         if not Booking.objects.filter(slot=instance.slot, status='confirmed').exists():
             instance.slot.is_booked = False
             instance.slot.save()
-

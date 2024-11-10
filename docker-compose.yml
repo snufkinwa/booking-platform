@@ -1,6 +1,8 @@
 services:
   booking-backend:
-    build: .
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
     environment:
@@ -9,6 +11,17 @@ services:
     depends_on:
       - redis
     command: python manage.py runserver 0.0.0.0:8000
+
+  booking-frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - booking-backend
+    environment:
+      - NEXT_PUBLIC_BACKEND_URL=http://booking-backend:8000
+    command: npm run dev
 
   redis:
     image: "redis:alpine"

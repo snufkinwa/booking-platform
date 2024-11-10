@@ -3,6 +3,8 @@ import datetime
 from graphene_django.types import DjangoObjectType
 from .models import Booking, Slot
 from graphene_subscriptions.events import CREATED, UPDATED, DELETED
+from django.core.exceptions import ObjectDoesNotExist
+
 
 class SlotType(DjangoObjectType):
     class Meta:
@@ -50,12 +52,19 @@ class Query(graphene.ObjectType):
     all_bookings = graphene.List(BookingType)
     all_slots = graphene.List(SlotType)
     available_slots = graphene.List(SlotType, date=graphene.String(required=True))
+    booking_by_id = graphene.Field(BookingType, id=graphene.ID(required=True))
 
     def resolve_all_bookings(self, info, **kwargs):
         return Booking.objects.all()
 
     def resolve_all_slots(self, info, **kwargs):
         return Slot.objects.all()
+
+    def resolve_booking_by_id(self, info, id):
+        try:
+            return Booking.objects.get(pk=id)
+        except ObjectDoesNotExist:
+            return None
 
     def resolve_available_slots(self, info, date, **kwargs):
         # Convert the provided date string to a datetime object
@@ -159,12 +168,34 @@ class DeleteSlot(graphene.Mutation):
         except Slot.DoesNotExist:
             raise GraphQLError('Slot not found')
 
+class CancelBooking(graphene.Mutation):
+    class Arguments:
+        id = graphene.ID(required=True)
 
+    booking = graphene.Field(BookingType)
+    success = graphene.Boolean()
+
+    @staticmethod
+    def mutate(root, info, id):
+        try:
+            booking = Booking.objects.get(pk=id)
+            booking.status = 'cancelled'
+            booking.save()
+            
+            # Free up the slot
+            if booking.slot:
+                booking.slot.is_booked = False
+                booking.slot.save()
+                
+            return CancelBooking(success=True, booking=booking)
+        except Booking.DoesNotExist:
+            return CancelBooking(success=False, booking=None)
 
 # Aggregating all mutations
 class Mutation(graphene.ObjectType):
     create_booking = CreateBooking.Field()
     delete_booking = DeleteBooking.Field()
+    cancel_booking = CancelBooking.Field()
     create_slot = CreateSlot.Field()
     update_slot = UpdateSlot.Field()
     delete_slot = DeleteSlot.Field()
