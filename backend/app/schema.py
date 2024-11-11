@@ -52,7 +52,7 @@ class Query(graphene.ObjectType):
     all_bookings = graphene.List(BookingType)
     all_slots = graphene.List(SlotType)
     available_slots = graphene.List(SlotType, date=graphene.String(required=True))
-    booking_by_id = graphene.Field(BookingType, id=graphene.ID(required=True))
+    booking_by_id = graphene.Field(BookingType, booking_id=graphene.ID(required=True))
 
     def resolve_all_bookings(self, info, **kwargs):
         return Booking.objects.all()
@@ -60,9 +60,9 @@ class Query(graphene.ObjectType):
     def resolve_all_slots(self, info, **kwargs):
         return Slot.objects.all()
 
-    def resolve_booking_by_id(self, info, id):
+    def resolve_booking_by_booking_id(self, info, booking_id):
         try:
-            return Booking.objects.get(pk=id)
+            return Booking.objects.get(booking_id=booking_id)
         except ObjectDoesNotExist:
             return None
 

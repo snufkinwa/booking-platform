@@ -61,10 +61,10 @@ export const CANCEL_BOOKING_MUTATION = `
 `;
 
 export const GET_BOOKING_BY_ID = `
-  query GetBookingById($id: ID!) {
-    bookingById(id: $id) {
+  query GetBookingByBookingId($bookingId: String!) {
+    bookingByBookingId(bookingId: $bookingId) {
       id
-      booking_id
+      bookingId
       bookerFirstName
       bookerLastName
       bookerEmail
